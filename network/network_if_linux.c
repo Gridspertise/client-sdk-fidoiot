@@ -27,6 +27,8 @@
 #include "safe_lib.h"
 #include "snprintf_s.h"
 #include "rest_interface.h"
+#include <sys/utsname.h>
+
 
 // Function used by libcurl to allocate memory to data received from the HTTP
 // response
@@ -1109,6 +1111,60 @@ int32_t fdo_printable_to_net(const char *src, void *addr)
 }
 
 /**
+ *  get device operating system
+ *
+ * @return
+ *        returns device operating system as string.
+ */
+const char *get_device_operating_system(void)
+{
+	static struct utsname sys_info;
+    if (uname(&sys_info) == 0) {
+		LOG(LOG_INFO, "OS Name: %s\n", sys_info.sysname);
+        return sys_info.sysname;
+    } else {
+        LOG(LOG_ERROR, "Failed to retrieve os info\n");
+        return NULL;
+    }
+}
+
+/**
+ *  get device architecture
+ *
+ * @return
+ *        returns device architecture as string.
+ */
+const char *get_device_architecture(void)
+{
+	static struct utsname sys_info;
+    if (uname(&sys_info) == 0) {
+		LOG(LOG_INFO, "Architecture Name: %s\n", sys_info.machine);
+        return sys_info.machine;
+    } else {
+        LOG(LOG_ERROR, "Failed to retrieve architecture info\n");
+        return NULL;
+    }
+}
+
+/**
+ *  get device os version
+ *
+ * @return
+ *        returns device os version as string.
+ */
+const char *get_device_os_version(void)
+{
+	static struct utsname sys_info;
+    if (uname(&sys_info) == 0) {
+		LOG(LOG_INFO, "OS Version: %s\n", sys_info.version);
+        return sys_info.version;
+    } else {
+        LOG(LOG_ERROR, "Failed to retrieve os version info\n");
+        return NULL;
+    }
+}
+
+/**
  * get device model
  *
  * @return
@@ -1126,8 +1182,8 @@ const char *get_device_model(void)
  *        returns device serial number as string.
  */
 const char *get_device_serial_number(void)
-{
-	return "fdo-linux-1234";
+{	
+	 return "fdo-linux-1234";
 }
 
 /**

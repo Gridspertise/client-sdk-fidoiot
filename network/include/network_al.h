@@ -152,6 +152,16 @@ uint32_t fdo_host_to_net_long(uint32_t value);
 /* Convert from ASCII to Network byte order format */
 int32_t fdo_printable_to_net(const char *src, void *addr);
 
+/* get device operating system */
+const char *get_device_operating_system(void);
+
+/* get device architecture */
+const char *get_device_architecture(void);
+
+/* get device os version */
+const char *get_device_os_version(void);
+
+
 /* get device model number */
 const char *get_device_model(void);
 

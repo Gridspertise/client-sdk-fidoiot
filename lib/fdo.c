@@ -632,17 +632,17 @@ static bool add_module_devmod(void)
 		return false;
 	}
 	if (!fdo_service_info_add_kv_str(g_fdo_data->service_info, "devmod:os",
-					 OS_NAME)) {
+					 (char *)get_device_operating_system())) {
 		LOG(LOG_ERROR, "Failed to add devmod:os\n");
 		return false;
 	}
 	if (!fdo_service_info_add_kv_str(g_fdo_data->service_info,
-					 "devmod:arch", ARCH)) {
+					 "devmod:arch", (char *)get_device_architecture())) {
 		LOG(LOG_ERROR, "Failed to add devmod:arch\n");
 		return false;
 	}
 	if (!fdo_service_info_add_kv_str(g_fdo_data->service_info,
-					 "devmod:version", OS_VERSION)) {
+					 "devmod:version", (char *)get_device_os_version())) {
 		LOG(LOG_ERROR, "Failed to add devmod:version\n");
 		return false;
 	}
