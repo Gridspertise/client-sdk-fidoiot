@@ -1120,10 +1120,10 @@ const char *get_device_operating_system(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "OS Name: %s\n", sys_info.sysname);
+		LOG(LOG_INFO, "OS Name: %s", sys_info.sysname);
         return sys_info.sysname;
     } else {
-        LOG(LOG_ERROR, "Failed to retrieve os info\n");
+        LOG(LOG_ERROR, "Failed to retrieve os info");
         return NULL;
     }
 }
@@ -1138,10 +1138,10 @@ const char *get_device_architecture(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "Architecture Name: %s\n", sys_info.machine);
+		LOG(LOG_INFO, "Architecture Name: %s", sys_info.machine);
         return sys_info.machine;
     } else {
-        LOG(LOG_ERROR, "Failed to retrieve architecture info\n");
+        LOG(LOG_ERROR, "Failed to retrieve architecture info");
         return NULL;
     }
 }
@@ -1156,8 +1156,8 @@ const char *get_device_os_version(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "OS Version: %s\n", sys_info.version);
-        return sys_info.version;
+		LOG(LOG_INFO, "OS Release: %s", sys_info.release);
+        return sys_info.release;
     } else {
         LOG(LOG_ERROR, "Failed to retrieve os version info\n");
         return NULL;
@@ -1182,8 +1182,35 @@ const char *get_device_model(void)
  *        returns device serial number as string.
  */
 const char *get_device_serial_number(void)
-{	
-	 return "fdo-linux-1234";
+{
+	const char *file_path = getenv("SN_PATH");
+    if (!file_path) {
+        LOG(LOG_ERROR, "SN_PATH is not set. Can't read serial number");
+        return NULL;
+    }
+    LOG(LOG_DEBUG, "Serial number file path: %s", file_path);
+    FILE* file = fopen(file_path, "r");
+
+    if (file == NULL) {
+		LOG(LOG_ERROR, "Failed to open serial number file");
+        return NULL;
+    }
+    static char serial[BUFF_SIZE_64_BYTES];
+    memset(serial, 0, sizeof(serial));
+    if (fgets(serial, sizeof(serial), file)) {
+        size_t len = strlen(serial);
+        if (len > 0 && serial[len - 1] == '\n') {
+            serial[len - 1] = '\0';
+        }
+        fclose(file);
+        LOG(LOG_INFO, "Serial Number: %s", serial);
+        return serial;
+    } else {
+        LOG(LOG_ERROR, "Failed to read serial number from file");
+        fclose(file);
+        return NULL;
+    }
+	// return "fdo-linux-1234";
 }
 
 /**
