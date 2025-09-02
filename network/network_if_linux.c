@@ -18,6 +18,8 @@
 #include <sys/types.h>
 #include <netdb.h> //hostent
 #include <arpa/inet.h>
+#include <sys/utsname.h>
+#include <ctype.h>
 
 #include "util.h"
 #include "network_al.h"
@@ -27,8 +29,6 @@
 #include "safe_lib.h"
 #include "snprintf_s.h"
 #include "rest_interface.h"
-#include <sys/utsname.h>
-
 
 // Function used by libcurl to allocate memory to data received from the HTTP
 // response
@@ -1120,10 +1120,10 @@ const char *get_device_operating_system(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "OS Name: %s", sys_info.sysname);
+		LOG(LOG_INFO, "OS Name: %s\n", sys_info.sysname);
         return sys_info.sysname;
     } else {
-        LOG(LOG_ERROR, "Failed to retrieve os info");
+        LOG(LOG_ERROR, "Failed to retrieve os info\n");
         return NULL;
     }
 }
@@ -1138,10 +1138,10 @@ const char *get_device_architecture(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "Architecture Name: %s", sys_info.machine);
+		LOG(LOG_INFO, "Architecture Name: %s\n", sys_info.machine);
         return sys_info.machine;
     } else {
-        LOG(LOG_ERROR, "Failed to retrieve architecture info");
+        LOG(LOG_ERROR, "Failed to retrieve architecture info\n");
         return NULL;
     }
 }
@@ -1156,7 +1156,7 @@ const char *get_device_os_version(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "OS Release: %s", sys_info.release);
+		LOG(LOG_INFO, "OS Release: %s\n", sys_info.release);
         return sys_info.release;
     } else {
         LOG(LOG_ERROR, "Failed to retrieve os version info\n");
@@ -1185,32 +1185,38 @@ const char *get_device_serial_number(void)
 {
 	const char *file_path = getenv("SN_PATH");
     if (!file_path) {
-        LOG(LOG_ERROR, "SN_PATH is not set. Can't read serial number");
+        LOG(LOG_ERROR, "SN_PATH is not set. Can't read serial number\n");
         return NULL;
     }
-    LOG(LOG_DEBUG, "Serial number file path: %s", file_path);
-    FILE* file = fopen(file_path, "r");
 
+    LOG(LOG_INFO, "Serial number file path: %s\n", file_path);
+	FILE* file = fopen(file_path, "rb");
     if (file == NULL) {
-		LOG(LOG_ERROR, "Failed to open serial number file");
+		LOG(LOG_ERROR, "Failed to open serial number file\n");
         return NULL;
     }
-    static char serial[BUFF_SIZE_64_BYTES];
+
+    static char serial[BUFF_SIZE_32_BYTES];
     memset(serial, 0, sizeof(serial));
-    if (fgets(serial, sizeof(serial), file)) {
-        size_t len = strlen(serial);
-        if (len > 0 && serial[len - 1] == '\n') {
-            serial[len - 1] = '\0';
+	size_t bytes_read = fread(serial, 1, sizeof(serial) - 1, file);
+	fclose(file);
+
+	if (bytes_read > 0) {
+		if (memchr(serial, '\0', bytes_read) == NULL) {
+			serial[bytes_read] = '\0';
+		}
+		for (size_t i = 0; i < bytes_read; ++i) {
+            unsigned char c = serial[i];
+            if (c < 0x20 || c > 0x7E) {  // Not printable ASCII
+                serial[i] = '?';
+            }
         }
-        fclose(file);
-        LOG(LOG_INFO, "Serial Number: %s", serial);
-        return serial;
-    } else {
-        LOG(LOG_ERROR, "Failed to read serial number from file");
-        fclose(file);
-        return NULL;
-    }
-	// return "fdo-linux-1234";
+		LOG(LOG_INFO, "Serial Number: %s\n", serial);
+		return serial;
+	} else {
+		LOG(LOG_ERROR, "Failed to read serial number from file\n");
+		return NULL;
+	}
 }
 
 /**
