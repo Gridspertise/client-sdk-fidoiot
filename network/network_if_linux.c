@@ -1120,7 +1120,7 @@ const char *get_device_operating_system(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "OS Name: %s\n", sys_info.sysname);
+		LOG(LOG_DEBUG, "OS Name: %s\n", sys_info.sysname);
         return sys_info.sysname;
     } else {
         LOG(LOG_ERROR, "Failed to retrieve os info\n");
@@ -1138,7 +1138,7 @@ const char *get_device_architecture(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "Architecture Name: %s\n", sys_info.machine);
+		LOG(LOG_DEBUG, "Architecture Name: %s\n", sys_info.machine);
         return sys_info.machine;
     } else {
         LOG(LOG_ERROR, "Failed to retrieve architecture info\n");
@@ -1156,7 +1156,7 @@ const char *get_device_os_version(void)
 {
 	static struct utsname sys_info;
     if (uname(&sys_info) == 0) {
-		LOG(LOG_INFO, "OS Release: %s\n", sys_info.release);
+		LOG(LOG_DEBUG, "OS Release: %s\n", sys_info.release);
         return sys_info.release;
     } else {
         LOG(LOG_ERROR, "Failed to retrieve os version info\n");
@@ -1186,14 +1186,14 @@ const char *get_device_serial_number(void)
 	const char *file_path = getenv("SN_PATH");
     if (!file_path) {
         LOG(LOG_ERROR, "SN_PATH is not set. Can't read serial number\n");
-        return NULL;
+        return "UNKNOWN-SERIAL-NO";
     }
 
     LOG(LOG_INFO, "Serial number file path: %s\n", file_path);
 	FILE* file = fopen(file_path, "rb");
     if (file == NULL) {
 		LOG(LOG_ERROR, "Failed to open serial number file\n");
-        return NULL;
+        return "UNKNOWN-SERIAL-NO";
     }
 
     static char serial[BUFF_SIZE_32_BYTES];
@@ -1211,11 +1211,11 @@ const char *get_device_serial_number(void)
                 serial[i] = '?';
             }
         }
-		LOG(LOG_INFO, "Serial Number: %s\n", serial);
+		LOG(LOG_DEBUG, "Serial Number: %s\n", serial);
 		return serial;
 	} else {
 		LOG(LOG_ERROR, "Failed to read serial number from file\n");
-		return NULL;
+		return "UNREADABLE-SERIAL-NO";
 	}
 }
 
